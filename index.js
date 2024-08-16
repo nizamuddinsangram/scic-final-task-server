@@ -3,7 +3,12 @@ const app = express();
 const port = process.env.PORT || 7000;
 const cors = require("cors");
 require("dotenv").config();
-
+app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vshvqji.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -26,6 +31,10 @@ async function run() {
     app.get("/products", async (req, res) => {
       const result = await productCollection.find().toArray();
       res.send(result);
+    });
+    app.get("/productCount", async (req, res) => {
+      const count = await productCollection.estimatedDocumentCount();
+      res.send({ count });
     });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
