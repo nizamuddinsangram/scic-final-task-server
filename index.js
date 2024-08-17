@@ -28,10 +28,31 @@ async function run() {
     const productCollection = client
       .db("scic-job-tasks")
       .collection("products");
+    // app.get("/products", async (req, res) => {
+    //   const result = await productCollection.find().toArray();
+    //   res.send(result);
+    // });
     app.get("/products", async (req, res) => {
-      const result = await productCollection.find().toArray();
-      res.send(result);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const products = await productCollection
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+
+      const totalProducts = await productCollection.countDocuments();
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      res.send({
+        products,
+        totalProducts,
+        totalPages,
+        currentPage: page,
+      });
     });
+
     app.get("/productCount", async (req, res) => {
       const count = await productCollection.estimatedDocumentCount();
       res.send({ count });
